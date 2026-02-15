@@ -7,7 +7,6 @@ const {
 } = require("../mail/templates/courseEnrollmentEmail");
 const { paymentSuccess } = require("../mail/templates/paymentSuccess");
 const { default: mongoose } = require("mongoose");
-const { useActionData } = require("react-router-dom");
 const crypto = require("crypto");
 const CourseProgress = require("../models/CourseProgress");
 
