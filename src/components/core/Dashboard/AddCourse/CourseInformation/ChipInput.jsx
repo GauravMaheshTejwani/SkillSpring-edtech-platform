@@ -1,0 +1,71 @@
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux';
+import {FaTimes} from "react-icons/fa"
+
+const ChipInput = ({name, label, register, errors, setValue}) => {
+
+    const [tags, setTags] = useState([]);
+    const {editCourse, course} = useSelector((state)=>state.course);
+
+    useEffect(()=>{
+        register(name, {
+            required: true,
+        });
+        if(editCourse){
+            setTags(JSON.parse(course?.tag));
+            setValue(name, JSON.parse(course?.tag));
+        }
+    },[])
+
+  return (
+    <div>
+        <label className='text-sm text-gray-50' htmlFor={name}>{label} <sup className=' text-pink-500'>*</sup></label>
+        <div className='flex flex-wrap gap-2 m-2'>
+            {
+                tags.map((tag, index) => (
+                    <div key={index} 
+                    className='m-1 flex items-center rounded-full bg-yellow-400 px-2 py-1 text-sm text-gray-50'
+                    >
+                        <span className=' text-gray-50'>{tag}</span>
+                        <button
+                        type='button'
+                        onClick={()=> {
+                            const updatedTags = [...tags];
+                            updatedTags.splice(index, 1);
+                            setTags(updatedTags);
+                            setValue(name, updatedTags)
+                        }}
+                        className='ml-2 text-gray-5'
+                        >
+                            <FaTimes/>
+                        </button>
+                    </div>
+                ))
+            }
+        </div>
+
+        <input
+            type='text'
+            id={name}
+            placeholder='Press Enter or , to add a tag'
+            className='form-style w-full'
+            onKeyDown={(e)=>{
+                if(e.key === 'Enter' || e.key===','){
+                    e.preventDefault();
+                    if(e.target.value){
+                        setTags([...tags, e.target.value]);
+                        setValue(name, [...tags, e.target.value]);
+                        e.target.value="";
+                    }
+                }
+            }}
+        />
+        {
+            errors[name] && 
+            <span className=' text-xs text-pink-500'>Tags are required</span>
+        }
+    </div>
+  )
+}
+
+export default ChipInput

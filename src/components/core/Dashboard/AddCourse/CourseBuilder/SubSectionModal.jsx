@@ -1,0 +1,183 @@
+import React, { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux'
+import { updateSubSection, createSubSection } from "../../../../../services/operations/courseDetailsAPI";
+import { setCourse } from '../../../../../slices/courseSlice';
+import toast from 'react-hot-toast';
+import { RxCross1 } from 'react-icons/rx';
+import Upload from './Upload';
+import IconBtn from '../../../../common/IconBtn'
+
+const SubSectionModal = ({modalData, setModalData, add=false, edit=false, view=false}) => {
+
+    const {token} = useSelector((state)=> state.auth);
+    const {course} = useSelector((state)=>state.course);
+    const [loading, setLoading] = useState(false);
+
+    const dispatch = useDispatch();
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        getValues,
+        formState: {errors},
+    } = useForm();
+
+    useEffect(()=>{
+        if(view || edit){
+            setValue("lecture", modalData.title);
+            setValue("lectureDesc", modalData.description);
+            setValue("lectureVideo", modalData.videoUrl);
+        }
+    },[view, edit]);
+
+    const isFormUpdated = ()=> {
+        const currentValues = getValues();
+        if(currentValues.lecture !== modalData.title || 
+            currentValues.lectureDesc !== modalData.description ||
+            currentValues.lectureVideo !== modalData.videoUrl
+        ){
+            return true;
+        }
+        return false;
+    }
+
+    const handleEditSubSection = async (data) => {
+        const currentValues = getValues();
+        const formData = new FormData;
+        formData.append("SubsectionId", modalData._id);
+        if (currentValues.lecture !== modalData.title) {
+            formData.append("title", data.lecture);
+        }
+        if (currentValues.lectureDesc !== modalData.description) {
+            formData.append("description", data.lectureDesc);
+        }
+        if (currentValues.lectureVideo !== modalData.videoUrl) {
+        formData.append("videoFile", data.lectureVideo);
+        }
+
+        formData.append("courseId", course._id);
+
+        setLoading(true);
+        const result = await updateSubSection(formData, token);
+        setLoading(false);
+        if(result){
+            dispatch(setCourse(result));
+        }
+        setModalData(null);
+    }
+
+    const onSubmit = async (data) => {
+        if(view){
+            return;
+        }
+        if(edit){
+            if(!isFormUpdated){
+                toast.error("No changes were made");
+            }
+            else{
+                handleEditSubSection(data);
+            }
+        }
+
+        const formData = new FormData();
+        formData.append("sectionId", modalData);
+        formData.append("title", data.lecture);
+        formData.append("description", data.lectureDesc);
+        formData.append("videoFile", data.lectureVideo);
+        formData.append("courseId", course._id);
+
+        setLoading(true);
+        const result = await createSubSection(formData, token);
+        setLoading(false)
+        if(result){
+            dispatch(setCourse(result))
+        }
+        setModalData(null);
+    }
+
+
+  return (
+    <div className='fixed inset-0 z-[1000] !mt-0 grid h-screen w-screen place-items-center overflow-auto bg-white bg-opacity-10 backdrop-blur-sm'>
+        <div className='my-10 w-11/12 max-w-[700px] rounded-lg border border-gray-400 bg-gray-800'>
+            <div className='flex items-center justify-between rounded-t-lg bg-gray-700 p-5'>
+                <p
+                className='text-xl font-semibold text-gray-50'
+                >
+                    {view && "Viewing"} {add && "Adding"} {edit && "Editing"}
+                </p>
+                <button
+                onClick={() => (!loading ? setModalData(null) : {} )}
+                >
+                    <RxCross1 size={20}/>
+                </button>
+            </div>
+
+            <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-8 px-8 py-10"
+            >
+                <Upload
+                    name="lectureVideo"
+                    label="leactureVideo"
+                    register={register}
+                    setValue={setValue}
+                    errors={errors}
+                    video={true}
+                    viewData={view ? modalData.videoUrl : null}
+                    editData={edit ? modalData.videoUrl : null}
+                />
+
+                <div className='flex flex-col space-y-2'>
+                    <label htmlFor='lecture'
+                    className='text-sm text-gray-50'
+                    >
+                        Lecture Title
+                    </label>
+                    <input
+                        disabled={view}
+                        id='lecture'
+                        placeholder='Enter Lecture Title'
+                        {...register("lecture", {required:true})}
+                        className='form-style w-full'
+                    />
+                    {errors.lectureTitle && (
+                        <span
+                        className='ml-2 text-xs tracking-wide text-pink-500'
+                        >
+                            Lecture Title is required
+                        </span>
+                    )}
+                </div>
+
+                <div className='flex flex-col space-y-2'>
+                    <label className='text-sm text-gray-50'>Lecture Description</label>
+                    <textarea disabled={view}
+                        id='lectureDesc'
+                        placeholder='Enter Lecture Description'
+                        {...register("lectureDesc", {required:true})}
+                        className='form-style resize-x-none min-h-[130px] w-full'
+                    />
+                    {
+                        errors.lectureDesc && (<span className='ml-2 text-xs tracking-wide text-pink-500'>
+                            Lecture Description is required
+                        </span>)
+                    }
+                </div>
+
+                {
+                    !view && (
+                        <div className='flex justify-end'>
+                            <IconBtn
+                                text={loading ? "Loading..." : edit ? "Save Changes" : "Save"}
+                            />
+                        </div>
+                    )
+                }
+            </form>
+        </div>
+    </div>
+  )
+}
+
+export default SubSectionModal
