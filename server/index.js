@@ -25,7 +25,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5731",
+    //origin: "http://localhost:5731",
+    origin: "https://skillspring-edtech-platform-2.onrender.com",
     credentials: true,
   }),
 );
