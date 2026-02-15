@@ -9,7 +9,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         //target: 'http://localhost:4000',
-        target: 'https://skillspring-edtech-platform-1.onrender.com/',
+        target: 'https://skillspring-edtech-platform-1.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
