@@ -1,5 +1,5 @@
 // const BASE_URL = import.meta.env.VITE_BASE_URL;
-const BASE_URL = "/api/app/v1";
+const BASE_URL = `${import.meta.env.VITE_BASE_URL}/api/app/v1`;
 
 export const categories = {
   CATEGORIES_API: BASE_URL + "/course/showAllCategories",
